@@ -81,13 +81,11 @@ class BetModel(ABC):
         """计算下注金额（基于连败次数）"""
         return start_bonus * (2 ** (bet_count + 1) - 1)
 
-
 class A(BetModel):
     """反向策略"""
     def guess(self, data):
         self.guess_dx = 1 - data[-1]
         return self.guess_dx
-
 
 class B(BetModel):
     """正向策略"""
@@ -108,6 +106,13 @@ class E(BetModel):
         if self.fail_count >= 6:
             self.guess_dx = 1 - data[-1]
             return self.guess_dx
+
+        # 检查最近6局是否相同（暂时不用）
+        #if len(data) >= 6:
+        #    last_6 = data[-6:]
+        #    if all(x == last_6[0] for x in last_6):
+        #        self.guess_dx = 1 - data[-1]
+        #        return self.guess_dx
         
         # 次级模式：反转策略
         if len(data) >= 5:
