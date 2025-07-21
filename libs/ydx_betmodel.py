@@ -83,12 +83,14 @@ class BetModel(ABC):
 
 
 class A(BetModel):
+    """反向策略"""
     def guess(self, data):
         self.guess_dx = 1 - data[-1]
         return self.guess_dx
 
 
 class B(BetModel):
+    """正向策略"""
     def guess(self, data):
         self.guess_dx = data[-1]
         return self.guess_dx
@@ -101,23 +103,22 @@ class B(BetModel):
         
 class E(BetModel):
     def guess(self, data):
-        """智能预测策略"""
+        """反向智能预测策略"""
         # 当连败6次时强制使用反向预测
         if self.fail_count >= 6:
             self.guess_dx = 1 - data[-1]
-            logger.debug(f"E策略(连败6次强制): 预测 {self.guess_dx}")
             return self.guess_dx
         
-        # 次级模式：五次连败情况的反转
+        # 次级模式：反转策略
         if len(data) >= 5:
-            # 获取最近41场数据
+            # 获取数据（41场）
             analysis_data = data[-41:] if len(data) >= 41 else data
             
-            # 统计0和1的频率
+            # 统计频率
             count_0 = analysis_data.count(0)
             count_1 = analysis_data.count(1)
             
-            # 确定高频结果
+            # 确定结果
             if count_0 > count_1:
                 high_count = 0
             elif count_1 > count_0:
@@ -132,16 +133,13 @@ class E(BetModel):
                 if last_4[0] == high_count:
                     # 高频结果与4次结果一致：预测继续出现相同结果
                     self.guess_dx = last_4[0]
-                    logger.info(f"4连相同且符合高频趋势: 预测{last_4[0]} (高频:{high_count})")
                 else:
                     # 高频结果与4次结果不一致：预测反转
                     self.guess_dx = 1 - last_4[0]
-                    logger.info(f"4连相同但不符合高频趋势: 预测{1 - last_4[0]} (高频:{high_count}, 当前趋势:{last_4[0]})")
                 return self.guess_dx
         
         # 默认模式：反向预测
         self.guess_dx = 1 - data[-1]
-        logger.debug(f"E策略(默认反向预测): 预测 {self.guess_dx}")
         return self.guess_dx
 
     def get_bet_count(self, data: list[int], start_count=0, stop_count=0):
