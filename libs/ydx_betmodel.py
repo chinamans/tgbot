@@ -100,12 +100,12 @@ class B(BetModel):
         return -1
         
 class E(BetModel):
-    def guess(self, data):
         """反向智能预测策略"""
+    def guess(self, data):
         # 当连败6次时强制使用反向预测
-        if self.fail_count >= 6:
-            self.guess_dx = 1 - data[-1]
-            return self.guess_dx
+        #if self.fail_count >= 6:
+        #    self.guess_dx = 1 - data[-1]
+        #    return self.guess_dx
 
         # 检查最近6局是否相同（暂时不用）
         #if len(data) >= 6:
@@ -114,7 +114,7 @@ class E(BetModel):
         #        self.guess_dx = 1 - data[-1]
         #        return self.guess_dx
         
-        # 次级模式：反转策略
+        # 获取高频数据
         if len(data) >= 5:
             # 获取数据（41场）
             analysis_data = data[-41:] if len(data) >= 41 else data
@@ -130,16 +130,45 @@ class E(BetModel):
                 high_count = 1
             else:
                 high_count = None  # 频率相等时不使用此策略
+
+        # 主级模式：检查前七场
+        if len(data) >= 7:
+            last_7 = data[-7:]
+            # 模型1: 前三相同且后四相同
+            pattern1 = (
+                all(x == last_7[0] for x in last_7[:3]) and 
+                all(x == last_7[3] for x in last_7[3:])
+            )
             
+            # 模型2: 前四相同且后三相同
+            pattern2 = (
+                all(x == last_7[0] for x in last_7[:4]) and 
+                all(x == last_7[4] for x in last_7[4:])
+            )
+            
+            if pattern1 or pattern2:
+                if high_count is not None:
+                    first_three = last_7[0]
+                    
+                    if first_three == high_count:
+                        # 一致：预测延续趋势
+                        self.guess_dx = last_7[-1]
+                    else:
+                        # 不一致：预测反转
+                        self.guess_dx = 1 - last_7[-1]
+                    return self.guess_dx
+        
+        # 次级模式：反转策略
+        if len(data) >= 5:
             # 检查最近4场是否完全相同
             last_4 = data[-4:]
             if all(x == last_4[0] for x in last_4) and high_count is not None:
                 # 比较高频结果和最近4次结果
                 if last_4[0] == high_count:
-                    # 高频结果与4次结果一致：预测继续出现相同结果
+                    # 结果一致：预测延续趋势
                     self.guess_dx = last_4[0]
                 else:
-                    # 高频结果与4次结果不一致：预测反转
+                    # 结果不一致：预测反转
                     self.guess_dx = 1 - last_4[0]
                 return self.guess_dx
         
