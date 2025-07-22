@@ -104,29 +104,29 @@ class B(BetModel):
 class E(BetModel):
     """反向智预测策略"""
     def guess(self, data):
+        """计算高频结果"""
+        # 使用最近41期数据（不足则用全部可用数据）
+        analysis_data = data[-41:] if len(data) >= 41 else data
+        
+        # 统计频率
+        count_0 = analysis_data.count(0)
+        count_1 = analysis_data.count(1)
+        
+        # 确定高频结果
+        if count_0 > count_1:
+            self.high_count = 0
+        elif count_1 > count_0:
+            self.high_count = 1
+        else:
+            self.high_count = None
+        
         # 次级模式：反转策略
-        if len(data) >= 5:
-            # 获取数据（41场）
-            analysis_data = data[-41:] if len(data) >= 41 else data
-            
-            # 统计频率
-            count_0 = analysis_data.count(0)
-            count_1 = analysis_data.count(1)
-            
-            # 确定结果
-            if count_0 > count_1:
-                high_count = 0
-            elif count_1 > count_0:
-                high_count = 1
-            else:
-                high_count = None
-            
-            # 检查最近4场是否完全相同
+        if len(data) >= 4:
             last_4 = data[-4:]
-            if all(x == last_4[0] for x in last_4) and high_count is not None:
+            if all(x == last_4[0] for x in last_4) and self.high_count is not None:
                 # 比较高频结果和最近4次结果
-                if last_4[0] == high_count:
-                    # 结果一致：预测继续出现相同结果
+                if last_4[0] == self.high_count:
+                    # 结果一致：预测继续该结果
                     self.guess_dx = last_4[0]
                 else:
                     # 结果不一致：预测反转
