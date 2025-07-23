@@ -122,7 +122,14 @@ class E(BetModel):
         else:
             self.high_count = None
 
-        # 主级模式：智能反转策略
+        # 主级模式：固定反转策略
+        if len(data) >= 6:
+            last_6 = data[-6:]
+            if all(x == last_6[0] for x in last_6):
+                self.guess_dx = 1 - last_6[0]
+                return self.guess_dx
+
+        # 次级模式：智能反转策略
         if len(data) >= 5:
             last_5 = data[-5:]
             if all(x == last_5[0] for x in last_5) and self.high_count is not None:
@@ -133,13 +140,6 @@ class E(BetModel):
                 else:
                     # 结果不一致：预测反转
                     self.guess_dx = 1 - last_5[0]
-                return self.guess_dx
-        
-        # 次级模式：固定反转策略
-        if len(data) >= 4:
-            last_4 = data[-4:]
-            if all(x == last_4[0] for x in last_4):
-                self.guess_dx = 1 - last_4[0]
                 return self.guess_dx
         
         # 默认模式：反向预测
