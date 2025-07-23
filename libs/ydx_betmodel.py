@@ -90,14 +90,16 @@ class A(BetModel):
 
 
 class B(BetModel):
-    """正向策略"""
+    """G佬的策略"""
     def guess(self, data):
-        self.guess_dx = data[-1]
+        self.guess_dx = 1
         return self.guess_dx
-
+        
+    # 重置连败次数
     def get_bet_count(self, data: list[int], start_count=0, stop_count=0):
         bet_count = self.fail_count - start_count
         if 0 <= bet_count < stop_count:
+            self.fail_count = 0
             return bet_count
         return -1
         
