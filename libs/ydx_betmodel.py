@@ -122,44 +122,24 @@ class E(BetModel):
         else:
             self.high_count = None
 
-        # 主级模式：前七场数据识别策略
-        if len(data) >= 7:
-            last_7 = data[-7:]
-            
-            # 模型A：前三场相同且后四场也相同
-            pattern_a = (
-                last_7[0] == last_7[1] == last_7[2] and
-                last_7[3] == last_7[4] == last_7[5] == last_7[6]
-            )
-            
-            # 模型B：前四场相同且后三场也相同
-            pattern_b = (
-                last_7[0] == last_7[1] == last_7[2] == last_7[3] and
-                last_7[4] == last_7[5] == last_7[6]
-            )
-            
-            # 比较高频结果和模型结果
-            if (pattern_a or pattern_b) and self.high_count is not None:
-                # 比较高频结果与前三场结果
-                if last_7[0] == self.high_count:
-                    # 一致：预测继续相同结果
-                    self.guess_dx = last_7[0]
-                else:
-                    # 不一致：预测反转
-                    self.guess_dx = 1 - last_7[0]
-                return self.guess_dx
-        
-        # 次级模式：反转策略
-        if len(data) >= 4:
-            last_4 = data[-4:]
-            if all(x == last_4[0] for x in last_4) and self.high_count is not None:
-                # 比较高频结果和最近4次结果
-                if last_4[0] == self.high_count:
+        # 主级模式：智能反转策略
+        if len(data) >= 5:
+            last_5 = data[-5:]
+            if all(x == last_5[0] for x in last_5) and self.high_count is not None:
+                # 比较高频结果和最近5次结果
+                if last_5[0] == self.high_count:
                     # 结果一致：预测继续该结果
-                    self.guess_dx = last_4[0]
+                    self.guess_dx = last_5[0]
                 else:
                     # 结果不一致：预测反转
-                    self.guess_dx = 1 - last_4[0]
+                    self.guess_dx = 1 - last_5[0]
+                return self.guess_dx
+        
+        # 次级模式：固定反转策略
+        if len(data) >= 4:
+            last_4 = data[-4:]
+            if all(x == last_4[0] for x in last_4):
+                self.guess_dx = 1 - last_4[0]
                 return self.guess_dx
         
         # 默认模式：反向预测
