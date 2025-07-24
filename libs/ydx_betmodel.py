@@ -127,10 +127,10 @@ class E(BetModel):
                 # 比较高频结果和最近4次结果
                 if last_4[0] == self.high_count:
                     # 结果一致：预测继续该结果
-                    self.guess_dx = last_4[0]
+                    self.guess_dx = data[-1]
                 else:
                     # 结果不一致：预测反转
-                    self.guess_dx = 1 - last_4[0]
+                    self.guess_dx = 1 - data[-1]
                 return self.guess_dx
 
         # 次级模式：前六场数据识别策略
@@ -147,10 +147,10 @@ class E(BetModel):
                 # 比较高频结果和最近2次结果
                 if last_6[0] == self.high_count:
                     # 一致：选择反向预测
-                    self.guess_dx = 1 - last_6[0]
+                    self.guess_dx = 1 - data[-1]
                 else:
                     # 不一致：选择正向预测
-                    self.guess_dx = last_6[0]
+                    self.guess_dx = data[-1]
                 return self.guess_dx
         
         # 默认模式：反向预测
