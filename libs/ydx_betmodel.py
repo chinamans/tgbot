@@ -90,16 +90,14 @@ class A(BetModel):
 
 
 class B(BetModel):
-    """G佬的策略"""
+    """正向策略"""
     def guess(self, data):
-        self.guess_dx = 1
+        self.guess_dx = data[-1]
         return self.guess_dx
-        
-    # 重置连败次数
+
     def get_bet_count(self, data: list[int], start_count=0, stop_count=0):
         bet_count = self.fail_count - start_count
         if 0 <= bet_count < stop_count:
-            self.fail_count = 0
             return bet_count
         return -1
         
@@ -121,8 +119,29 @@ class E(BetModel):
             self.high_count = 1
         else:
             self.high_count = None
+
+        # 主级模式：前七场数据识别策略
+        if len(data) >= 7:
+            last_7 = data[-7:]
             
-        # 主级模式：智能反转策略
+            # 模型A：前三场相同且后四场也相同
+            pattern_a = (
+                last_7[0] == last_7[1] == last_7[2] and
+                last_7[3] == last_7[4] == last_7[5] == last_7[6]
+            )
+            
+            # 比较高频结果和模型结果
+            if pattern_a and self.high_count is not None:
+                # 比较高频结果与前三场结果
+                if last_7[0] == self.high_count:
+                    # 一致：预测继续相同结果
+                    self.guess_dx = 1 - last_7[0]
+                else:
+                    # 不一致：预测反转
+                    self.guess_dx = last_7[0]
+                return self.guess_dx
+        
+        # 次级模式：反转策略
         if len(data) >= 4:
             last_4 = data[-4:]
             if all(x == last_4[0] for x in last_4) and self.high_count is not None:
@@ -134,31 +153,16 @@ class E(BetModel):
                     # 结果不一致：预测反转
                     self.guess_dx = 1 - last_4[0]
                 return self.guess_dx
-
-        # 次级模式：前六场数据识别策略
-        if len(data) >= 6:
-            last_6 = data[-6:]
-            
-            # 模型A：前三场相同且后四场也相同
-            pattern_a = (
-                last_6[0] == last_6[1] == and
-                last_6[2] == last_6[3] == last_6[4] == last_6[5]
-            )
-            
-            # 比较高频结果和模型结果
-            if pattern_a and self.high_count is not None:
-                # 比较高频结果与前三场结果
-                if last_6[0] == self.high_count:
-                    # 一致：预测继续相同结果
-                    self.guess_dx = 1 - last_6[0]
-                else:
-                    # 不一致：预测反转
-                    self.guess_dx = last_6[0]
-                return self.guess_dx
         
         # 默认模式：反向预测
         self.guess_dx = 1 - data[-1]
         return self.guess_dx
+
+    def get_bet_count(self, data: list[int], start_count=0, stop_count=0):
+        bet_count = self.fail_count - start_count
+        if 0 <= bet_count < stop_count:
+            return bet_count
+        return -1
 
 models: dict[str, BetModel] = {"a": A(), "b": B(), "e": E()}
 
