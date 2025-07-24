@@ -120,25 +120,25 @@ class E(BetModel):
         else:
             self.high_count = None
 
-        # 主级模式：前六场数据识别策略
-        if len(data) >= 6:
-            last_6 = data[-6:]
+        # 主级模式：前七场数据识别策略
+        if len(data) >= 7:
+            last_7 = data[-7:]
             
             # 模型A：前三场相同且后四场也相同
             pattern_a = (
-                last_6[0] == last_6[1] == and
-                last_6[2] == last_6[3] == last_6[4] == last_6[5]
+                last_7[0] == last_7[1] == last_7[2] and
+                last_7[3] == last_7[4] == last_7[5] == last_7[6]
             )
             
             # 比较高频结果和模型结果
             if pattern_a and self.high_count is not None:
                 # 比较高频结果与前三场结果
-                if last_6[0] == self.high_count:
+                if last_7[0] == self.high_count:
                     # 一致：预测继续相同结果
-                    self.guess_dx = 1 - last_6[0]
+                    self.guess_dx = 1 - last_7[0]
                 else:
                     # 不一致：预测反转
-                    self.guess_dx = last_6[0]
+                    self.guess_dx = last_7[0]
                 return self.guess_dx
         
         # 次级模式：反转策略
