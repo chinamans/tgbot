@@ -81,16 +81,14 @@ class BetModel(ABC):
         """计算下注金额（基于连败次数）"""
         return start_bonus * (2 ** (bet_count + 1) - 1)
 
-
 class A(BetModel):
-    """反向策略"""
+    """固定1的策略"""
     def guess(self, data):
-        self.guess_dx = 1 - data[-1]
+        self.guess_dx = 1
         return self.guess_dx
 
-
 class B(BetModel):
-    """固定1的预测策略"""
+    """固定1的智能预测策略"""
     def guess(self, data):
         """计算高频结果"""
         analysis_data = data[-41:] if len(data) >= 41 else data
