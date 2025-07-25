@@ -126,7 +126,7 @@ class B(BetModel):
         return -1
         
 class E(BetModel):
-    """反向智预测策略"""
+    """反向智能预测策略"""
     def guess(self, data):
         """计算高频结果"""
         # 使用最近41期数据（不足则用全部可用数据）
