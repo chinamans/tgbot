@@ -90,9 +90,33 @@ class A(BetModel):
 
 
 class B(BetModel):
-    """正向策略"""
+    """固定1的预测策略"""
     def guess(self, data):
-        self.guess_dx = data[-1]
+        """计算高频结果"""
+        analysis_data = data[-41:] if len(data) >= 41 else data
+        
+        count_0 = analysis_data.count(0)
+        count_1 = analysis_data.count(1)
+        
+        if count_0 > count_1:
+            self.high_count = 0
+        elif count_1 > count_0:
+            self.high_count = 1
+        else:
+            self.high_count = None
+
+        # 主级模式：反转策略
+        if len(data) >= 4:
+            last_4 = data[-4:]
+            if all(x == 0 for x in last_4) and self.high_count is not None:
+                if self.high_count == 0:
+                    self.guess_dx = 0  # 高频=0 → 预测0
+                else:
+                    self.guess_dx = 1  # 高频≠0 → 预测1
+                return self.guess_dx
+        
+        # 默认模式：反向预测
+        self.guess_dx = 1
         return self.guess_dx
 
     def get_bet_count(self, data: list[int], start_count=0, stop_count=0):
