@@ -125,7 +125,7 @@ class E(BetModel):
             last_4 = data[-4:]
             if all(x == last_4[0] for x in last_4) and self.high_count is not None:
                 # 比较高频结果和最近4次结果
-                if last_4[0] == self.high_count:
+                if data[-1] == self.high_count:
                     # 结果一致：预测继续该结果
                     self.guess_dx = data[-1]
                 else:
@@ -145,7 +145,7 @@ class E(BetModel):
             
             if patternA and self.high_count is not None:
                 # 比较高频结果和最近2次结果
-                if last_6[0] == self.high_count:
+                if data[-1] == self.high_count:
                     # 一致：选择反向预测
                     self.guess_dx = 1 - data[-1]
                 else:
