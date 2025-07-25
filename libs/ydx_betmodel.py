@@ -82,16 +82,10 @@ class BetModel(ABC):
         return start_bonus * (2 ** (bet_count + 1) - 1)
 
 class A(BetModel):
-    """固定1的策略"""
+    """反向策略"""
     def guess(self, data):
-        self.guess_dx = 1
+        self.guess_dx = 1 - data[-1]
         return self.guess_dx
-
-    def get_bet_count(self, data: list[int], start_count=0, stop_count=0):
-        bet_count = self.fail_count - start_count
-        if 0 <= bet_count < stop_count:
-            return bet_count
-        return -1
 
 class B(BetModel):
     """固定1的智能预测策略"""
