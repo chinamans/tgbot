@@ -115,7 +115,7 @@ class B(BetModel):
                     self.guess_dx = 1  # 高频≠0 → 预测1
                 return self.guess_dx
         
-        # 默认模式：反向预测
+        # 默认模式：固定预测
         self.guess_dx = 1
         return self.guess_dx
 
