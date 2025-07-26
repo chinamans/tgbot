@@ -97,7 +97,7 @@ class A(BetModel):
         else:
             self.high_count = None
 
-        # 主级模式：反转策略
+        # 主级模式：反转策略-4
         if len(data) >= 4:
             last_4 = data[-4:]
             if all(x == 1 for x in last_4) and self.high_count is not None:
@@ -105,6 +105,16 @@ class A(BetModel):
                     self.guess_dx = 1  # 高频=1 → 预测1
                 else:
                     self.guess_dx = 0  # 高频≠1 → 预测0
+                return self.guess_dx
+
+        # 次级模式：反转策略-3
+        if len(data) >= 3:
+            last_3 = data[-3:]
+            if all(x == 1 for x in last_3) and self.high_count is not None:
+                if self.high_count == 1:
+                    self.guess_dx = 0  # 高频=1 → 预测0
+                else:
+                    self.guess_dx = 1  # 高频≠1 → 预测1
                 return self.guess_dx
         
         # 默认模式：固定预测
