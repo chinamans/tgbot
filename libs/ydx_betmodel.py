@@ -79,7 +79,7 @@ class BetModel(ABC):
         
     def get_bet_bonus(self, start_bonus, bet_count):
         """计算下注金额（基于连败次数）"""
-        return start_bonus * (2 ** (bet_count + 1) - 1)
+        return start_bonus * (2.5 ** (bet_count + 1) - 1)
 
 class A(BetModel):
     """固定0的智能预测策略"""
@@ -121,7 +121,7 @@ class A(BetModel):
         self.guess_dx = 0
         return self.guess_dx
 
-    def get_bet_bonus(self, data: list[int], start_count=0, stop_count=0):
+    def get_bet_count(self, data: list[int], start_count=0, stop_count=0):
         bet_count = self.fail_count - start_count
         if 0 <= bet_count < stop_count:
             return bet_count
@@ -157,7 +157,7 @@ class B(BetModel):
         self.guess_dx = 1
         return self.guess_dx
 
-    def get_bet_bonus(self, data: list[int], start_count=0, stop_count=0):
+    def get_bet_count(self, data: list[int], start_count=0, stop_count=0):
         bet_count = self.fail_count - start_count
         if 0 <= bet_count < stop_count:
             return bet_count
