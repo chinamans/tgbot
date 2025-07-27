@@ -79,7 +79,7 @@ class BetModel(ABC):
         
     def get_bet_bonus(self, start_bonus, bet_count):
         """计算下注金额（基于连败次数）"""
-        return start_bonus * (2.5 ** (bet_count + 1) - 1)
+        return start_bonus * (2 ** (bet_count + 1) - 1)
 
 class A(BetModel):
     """固定0的智能预测策略"""
