@@ -164,59 +164,39 @@ class B(BetModel):
         return -1
         
 class E(BetModel):
-    """反向智能预测策略"""
+    """基于频率的看命吃饭策略"""
     def guess(self, data):
         """计算高频结果"""
-        # 使用最近41期数据（不足则用全部可用数据）
-        analysis_data = data[-41:] if len(data) >= 41 else data
+        analysis_data = data[-81:] if len(data) >= 81 else data
         
-        # 统计频率
         count_0 = analysis_data.count(0)
         count_1 = analysis_data.count(1)
         
-        # 确定高频结果
-        if count_0 > count_1:
-            self.high_count = 0
-        elif count_1 > count_0:
-            self.high_count = 1
-        else:
-            self.high_count = None
-
-        # 主级模式：反转策略
-        if len(data) >= 4:
-            last_4 = data[-4:]
-            if all(x == last_4[0] for x in last_4) and self.high_count is not None:
-                # 比较高频结果和最近4次结果
-                if data[-1] == self.high_count:
-                    # 结果一致：预测继续该结果
-                    self.guess_dx = data[-1]
-                else:
-                    # 结果不一致：预测反转
-                    self.guess_dx = 1 - data[-1]
+        current_val = data[-1] if data else None
+        is_low_freq = False
+        is_high_freq = False
+        
+        if current_val is not None:
+            if current_val == 0:
+                is_low_freq = count_0 < count_1
+                is_high_freq = count_0 > count_1
+            else:  # current_val == 1
+                is_low_freq = count_1 < count_0
+                is_high_freq = count_1 > count_0
+        
+        if current_val is not None:
+            # 低频情况：正向
+            if is_low_freq:
+                self.guess_dx = current_val
                 return self.guess_dx
-
-        # 次级模式：前六场数据识别策略
-        if len(data) >= 6:
-            last_6 = data[-6:]
             
-            # 检查条件：前两场相同且后四场相同
-            patternA = (
-                last_6[0] == last_6[1] and  # 前两场相同
-                last_6[2] == last_6[3] == last_6[4] == last_6[5]  # 后四场相同
-            )
-            
-            if patternA and self.high_count is not None:
-                # 比较高频结果和最近2次结果
-                if data[-1] == self.high_count:
-                    # 一致：选择反向预测
-                    self.guess_dx = 1 - data[-1]
-                else:
-                    # 不一致：选择正向预测
-                    self.guess_dx = data[-1]
+            # 高频情况：反向
+            if is_high_freq:
+                self.guess_dx = 1 - current_val
                 return self.guess_dx
         
-        # 默认模式：反向预测
-        self.guess_dx = 1 - data[-1]
+        # 数据不足使用反向预测
+        self.guess_dx = 1 - data[-1] if data else 0
         return self.guess_dx
 
     def get_bet_count(self, data: list[int], start_count=0, stop_count=0):
