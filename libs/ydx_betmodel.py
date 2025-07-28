@@ -166,36 +166,50 @@ class B(BetModel):
 class E(BetModel):
     """基于频率的看命吃饭策略"""
     def guess(self, data):
-        """计算高频结果"""
-        analysis_data = data[-81:] if len(data) >= 81 else data
+        # 获取数据
+        data_101 = data[-101:] if len(data) >= 101 else data
+        data_41 = data[-41:] if len(data) >= 41 else data
         
-        count_0 = analysis_data.count(0)
-        count_1 = analysis_data.count(1)
+        # 计算结算
+        high_101 = None
+        if data_101:
+            count_0_101 = data_101.count(0)
+            count_1_101 = data_101.count(1)
+            if count_0_101 > count_1_101:
+                high_101 = 0
+            elif count_1_101 > count_0_101:
+                high_101 = 1
         
-        current_val = data[-1] if data else None
-        is_low_freq = False
-        is_high_freq = False
+        high_41 = None
+        if data_41:
+            count_0_41 = data_41.count(0)
+            count_1_41 = data_41.count(1)
+            if count_0_41 > count_1_41:
+                high_41 = 0
+            elif count_1_41 > count_0_41:
+                high_41 = 1
         
-        if current_val is not None:
-            if current_val == 0:
-                is_low_freq = count_0 < count_1
-                is_high_freq = count_0 > count_1
-            else:  # current_val == 1
-                is_low_freq = count_1 < count_0
-                is_high_freq = count_1 > count_0
+        # 高频结果一致：41场的结果
+        if high_101 is not None and high_41 is not None and high_101 == high_41:
+            self.guess_dx = high_41
+            return self.guess_dx
         
-        if current_val is not None:
-            # 低频情况：正向
-            if is_low_freq:
-                self.guess_dx = current_val
-                return self.guess_dx
-            
-            # 高频情况：反向
-            if is_high_freq:
-                self.guess_dx = 1 - current_val
-                return self.guess_dx
+        # 高频结果不一致：101场的结果
+        if high_101 is not None and high_41 is not None and high_101 != high_41:
+            self.guess_dx = high_101
+            return self.guess_dx
         
-        # 数据不足使用反向预测
+        # 只有101场有高频结果
+        if high_101 is not None:
+            self.guess_dx = high_101
+            return self.guess_dx
+        
+        # 只有41场有高频结果
+        if high_41 is not None:
+            self.guess_dx = high_41
+            return self.guess_dx
+        
+        # 无高频结果可用
         self.guess_dx = 1 - data[-1] if data else 0
         return self.guess_dx
 
