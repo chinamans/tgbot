@@ -154,16 +154,21 @@ class B(BetModel):
         return -1
         
 class E(BetModel):
-    """固定0的预测策略"""
+    """固定预测1，连败6次时重置状态"""
     def guess(self, data):
-        # 主级模式：反转策略
-        if self.fail_count >= 6:
-            self.guess_dx = 1
-            return self.guess_dx
+        # 固定预测1
+        self.guess_dx = 1
         
-        # 默认模式：固定预测
-        self.guess_dx = 0
+        # 连败6次时触发状态重置
+        if self.fail_count >= 6:
+            self._reset_state()
+        
         return self.guess_dx
+
+    def _reset_state(self):
+        """重置关键状态：连败计数和预测值"""
+        self.fail_count = 0
+        self.guess_dx = -1
 
     def get_bet_count(self, data: list[int], start_count=0, stop_count=0):
         bet_count = self.fail_count - start_count
