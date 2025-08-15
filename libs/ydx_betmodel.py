@@ -154,9 +154,22 @@ class B(BetModel):
         return -1
         
 class E(BetModel):
-    async def guess(self, data):
-        self.guess_dx = 1 - data[-1]
+    """固定0的预测策略"""
+    def guess(self, data):
+        # 主级模式：反转策略
+        if self.fail_count >= 6:
+            self.guess_dx = 1
+            return self.guess_dx
+        
+        # 默认模式：固定预测
+        self.guess_dx = 0
         return self.guess_dx
+
+    def get_bet_count(self, data: list[int], start_count=0, stop_count=0):
+        bet_count = self.fail_count - start_count
+        if 0 <= bet_count < stop_count:
+            return bet_count
+        return -1
 
 models: dict[str, BetModel] = {"a": A(), "b": B(), "e": E()}
 
