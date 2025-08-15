@@ -154,60 +154,9 @@ class B(BetModel):
         return -1
         
 class E(BetModel):
-    """基于频率的看命吃饭策略"""
-    def guess(self, data):
-        # 获取数据
-        data_101 = data[-101:] if len(data) >= 101 else data
-        data_41 = data[-41:] if len(data) >= 41 else data
-        
-        # 计算结算
-        high_101 = None
-        if data_101:
-            count_0_101 = data_101.count(0)
-            count_1_101 = data_101.count(1)
-            if count_0_101 > count_1_101:
-                high_101 = 0
-            elif count_1_101 > count_0_101:
-                high_101 = 1
-        
-        high_41 = None
-        if data_41:
-            count_0_41 = data_41.count(0)
-            count_1_41 = data_41.count(1)
-            if count_0_41 > count_1_41:
-                high_41 = 0
-            elif count_1_41 > count_0_41:
-                high_41 = 1
-        
-        # 高频结果一致：41场的结果
-        if high_101 is not None and high_41 is not None and high_101 == high_41:
-            self.guess_dx = high_41
-            return self.guess_dx
-        
-        # 高频结果不一致：101场的结果
-        if high_101 is not None and high_41 is not None and high_101 != high_41:
-            self.guess_dx = high_101
-            return self.guess_dx
-        
-        # 只有101场有高频结果
-        if high_101 is not None:
-            self.guess_dx = high_101
-            return self.guess_dx
-        
-        # 只有41场有高频结果
-        if high_41 is not None:
-            self.guess_dx = high_41
-            return self.guess_dx
-        
-        # 无高频结果可用
-        self.guess_dx = 1 - data[-1] if data else 0
+    async def guess(self, data):
+        self.guess_dx = 1 - data[-1]
         return self.guess_dx
-
-    def get_bet_count(self, data: list[int], start_count=0, stop_count=0):
-        bet_count = self.fail_count - start_count
-        if 0 <= bet_count < stop_count:
-            return bet_count
-        return -1
 
 models: dict[str, BetModel] = {"a": A(), "b": B(), "e": E()}
 
