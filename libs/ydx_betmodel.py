@@ -175,6 +175,12 @@ class E(BetModel):
         self.fail_count = 0
         self.guess_dx = -1
 
+    def get_bet_count(self, data: list[int], start_count=0, stop_count=0):
+        bet_count = self.fail_count - start_count
+        if 0 <= bet_count < stop_count:
+            return bet_count
+        return -1
+
 models: dict[str, BetModel] = {"a": A(), "b": B(), "e": E()}
 
 def test(data: list[int]):
