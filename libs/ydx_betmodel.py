@@ -82,40 +82,9 @@ class BetModel(ABC):
         return start_bonus * (2 ** (bet_count + 1) - 1)
 
 class A(BetModel):
-    """固定0的智能预测策略"""
-    def guess(self, data):
-        """计算高频结果"""
-        analysis_data = data[-41:] if len(data) >= 41 else data
-        
-        count_0 = analysis_data.count(0)
-        count_1 = analysis_data.count(1)
-        
-        if count_0 > count_1:
-            self.high_count = 0
-        elif count_1 > count_0:
-            self.high_count = 1
-        else:
-            self.high_count = None
-
-        # 主级模式：反转策略
-        if len(data) >= 4:
-            last_4 = data[-4:]
-            if all(x == 0 for x in last_4) and self.high_count is not None:
-                if self.high_count == 0:
-                    self.guess_dx = 1  # 高频=0 → 预测0
-                else:
-                    self.guess_dx = 0  # 高频≠0 → 预测1
-                return self.guess_dx
-        
-        # 默认模式：固定预测
-        self.guess_dx = 0
+    async def guess(self, data):
+        self.guess_dx = 1 - data[-1]
         return self.guess_dx
-
-    def get_bet_count(self, data: list[int], start_count=0, stop_count=0):
-        bet_count = self.fail_count - start_count
-        if 0 <= bet_count < stop_count:
-            return bet_count
-        return -1
 
 class B(BetModel):
     """固定1的智能预测策略"""
@@ -134,9 +103,9 @@ class B(BetModel):
             self.high_count = None
 
         # 主级模式：反转策略
-        if len(data) >= 4:
-            last_4 = data[-4:]
-            if all(x == 0 for x in last_4) and self.high_count is not None:
+        if len(data) >= 5:
+            last_5 = data[-5:]
+            if all(x == 0 for x in last_5) and self.high_count is not None:
                 if self.high_count == 0:
                     self.guess_dx = 0  # 高频=0 → 预测0
                 else:
@@ -157,7 +126,7 @@ class E(BetModel):
     """固定预测1，下注周期内满足条件时重置状态"""
     def guess(self, data):
         # 固定预测1
-        self.guess_dx = 0
+        self.guess_dx = 1
         return self.guess_dx
 
     def get_bet_count(self, data: list[int], start_count=0, stop_count=0):
