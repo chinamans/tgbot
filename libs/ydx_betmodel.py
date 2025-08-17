@@ -157,23 +157,8 @@ class E(BetModel):
     """固定预测1，下注周期内满足条件时重置状态"""
     def guess(self, data):
         # 固定预测1
-        self.guess_dx = 1
+        self.guess_dx = 0
         return self.guess_dx
-
-    def get_bet_count(self, data: list[int], start_count=0, stop_count=0):
-        """计算下注次数，满足条件时重置状态"""
-        bet_count = self.fail_count - start_count
-        
-        # 关键修改：满足条件时重置状态
-        if 0 <= bet_count < stop_count:
-            self._reset_state()
-            return bet_count
-        return -1
-
-    def _reset_state(self):
-        """重置关键状态：连败计数和预测值"""
-        self.fail_count = 0
-        self.guess_dx = -1
 
     def get_bet_count(self, data: list[int], start_count=0, stop_count=0):
         bet_count = self.fail_count - start_count
