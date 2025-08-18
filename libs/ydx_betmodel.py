@@ -115,7 +115,7 @@ class A(BetModel):
         return -1
 
 class B(BetModel):
-    """固定1的智能预测策略"""
+    """反转的智能预测策略"""
     def guess(self, data):
         """计算高频结果"""
         analysis_data = data[-41:] if len(data) >= 41 else data
@@ -134,14 +134,14 @@ class B(BetModel):
         if len(data) >= 5:
             last_5 = data[-5:]
             if all(x == 0 for x in last_5) and self.high_count is not None:
-                if self.high_count == 0:
-                    self.guess_dx = 0  # 高频=0 → 预测0
+                if self.high_count == data[-1]:
+                    self.guess_dx = data[-1]  # 高频=0 → 预测0
                 else:
-                    self.guess_dx = 1  # 高频≠0 → 预测1
+                    self.guess_dx = 1 - data[-1]  # 高频≠0 → 预测1
                 return self.guess_dx
         
         # 默认模式：固定预测
-        self.guess_dx = 1
+        self.guess_dx = 1 - data[-1]
         return self.guess_dx
 
     def get_bet_count(self, data: list[int], start_count=0, stop_count=0):
