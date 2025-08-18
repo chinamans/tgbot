@@ -98,11 +98,12 @@ class A(BetModel):
         # 主级模式
         if len(data) >= 5:
             last_5 = data[-5:]
-            if last_5 == [0, 1, 0, 1, 0] or last_5 == [1, 0, 1, 0, 1]:
-                if self.high_count is not None:
-                    # 高频=0 → 预测0；高频=1 → 预测1
-                    self.guess_dx = 0 if self.high_count == 0 else 1
-                    return self.guess_dx
+            if last_5 in ([0,1,0,1,0], [1,0,1,0,1]) and self.high_count is not None:-
+                if self.high_count == data[-1]:
+                    self.guess_dx = data[-1]  # 高频正投
+                else:
+                    self.guess_dx = 1 - data[-1]  # 不高频反投
+                return self.guess_dx
         
         # 默认模式：正投
         self.guess_dx = data[-1]
@@ -135,9 +136,9 @@ class B(BetModel):
             last_5 = data[-5:]
             if all(x == 0 for x in last_5) and self.high_count is not None:
                 if self.high_count == data[-1]:
-                    self.guess_dx = data[-1]  # 高频=0 → 预测0
+                    self.guess_dx = data[-1]  # 高频正投
                 else:
-                    self.guess_dx = 1 - data[-1]  # 高频≠0 → 预测1
+                    self.guess_dx = 1 - data[-1]  # 不高频反投
                 return self.guess_dx
         
         # 默认模式：固定预测
