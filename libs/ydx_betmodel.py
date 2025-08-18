@@ -82,9 +82,37 @@ class BetModel(ABC):
         return start_bonus * (2 ** (bet_count + 1) - 1)
 
 class A(BetModel):
-    async def guess(self, data):
-        self.guess_dx = 1 - data[-1]
+    """正向的智能预测策略"""
+    def guess(self, data):
+        # 高频统计逻辑
+        analysis_data = data[-41:] if len(data) >= 41 else data
+        count_0 = analysis_data.count(0)
+        count_1 = analysis_data.count(1)
+        if count_0 > count_1:
+            self.high_count = 0
+        elif count_1 > count_0:
+            self.high_count = 1
+        else:
+            self.high_count = None
+
+        # 主级模式
+        if len(data) >= 5:
+            last_5 = data[-5:]
+            if last_5 == [0, 1, 0, 1, 0] or last_5 == [1, 0, 1, 0, 1]:
+                if self.high_count is not None:
+                    # 高频=0 → 预测0；高频=1 → 预测1
+                    self.guess_dx = 0 if self.high_count == 0 else 1
+                    return self.guess_dx
+        
+        # 默认模式：正投
+        self.guess_dx = data[-1]
         return self.guess_dx
+
+    def get_bet_count(self, data: list[int], start_count=0, stop_count=0):
+        bet_count = self.fail_count - start_count
+        if 0 <= bet_count < stop_count:
+            return bet_count
+        return -1
 
 class B(BetModel):
     """固定1的智能预测策略"""
