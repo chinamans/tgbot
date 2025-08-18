@@ -94,8 +94,6 @@ class A(BetModel):
             self.high_count = 1
         else:
             self.high_count = None
-        
-        logging.info(str(high_count))
 
         # 主级模式
         if len(data) >= 5:
