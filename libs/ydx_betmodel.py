@@ -29,8 +29,8 @@ class BetModel(ABC):
         turn_loss_count = 0
         win_count = 0
         total_count = 0
-        for i in range(40, len(data) + 1):
-            data_i = data[i - 40 : i]
+        for i in range(41, len(data) + 1):
+            data_i = data[i - 41 : i]
             dx = self.guess(data_i)
             if i < len(data):
                 total_count += 1
