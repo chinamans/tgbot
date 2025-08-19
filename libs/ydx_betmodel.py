@@ -119,7 +119,7 @@ class A(BetModel):
         # 主级模式
         if len(data) >= 5:
             last_5 = data[-5:]
-            if last_5 in ([0,1,0,1,1], [1,0,1,0,0], [1,0,1,0,1], [0,1,0,1,0]) and self.high_count is not None:
+            if last_5 in ([1,0,1,0,1], [0,1,0,1,0]) and self.high_count is not None:
                 if self.high_count == data[-1]:
                     self.guess_dx = data[-1]  # 高频正投
                 else:
