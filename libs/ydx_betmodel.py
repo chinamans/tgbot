@@ -184,6 +184,9 @@ class E(BetModel):
 
     def get_bet_count(self, data: list[int], start_count=0, stop_count=0):
         bet_count = self.fail_count - start_count
+        if not (0 <= bet_count < stop_count):
+            self.fail_count = 0
+            bet_count = 0 - start_count
         if 0 <= bet_count < stop_count:
             return bet_count
         return -1
