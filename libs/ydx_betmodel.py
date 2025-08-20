@@ -119,12 +119,15 @@ class A(BetModel):
         # 主级模式
         if len(data) >= 6:
             last_6 = data[-6:]
-            if last_6 in ([1,0,1,0,1,0], [0,1,0,1,0,1]) and self.high_count is not None:
-                if self.high_count == data[-1]:
-                    self.guess_dx = data[-1]  # 高频正投
-                else:
-                    self.guess_dx = 1 - data[-1]  # 不高频反投
-                return self.guess_dx
+            if last_6 in ([1,0,1,0,1,0], [0,1,0,1,0,1]):
+        if self.high_count is not None:
+            if self.high_count == data[-1]:
+                self.guess_dx = data[-1]  # 高频正投
+            else:
+                self.guess_dx = 1 - data[-1]  # 不高频反投
+        else:
+            self.guess_dx = 1 - data[-1]  # 高频结果为None时反投
+        return self.guess_dx
         
         # 默认模式：正投
         self.guess_dx = data[-1]
