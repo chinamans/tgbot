@@ -144,11 +144,11 @@ class A(BetModel):
             self.high_count = None
 
         # 高频日志记录
-        hight_logger.info(
-            f"高频统计 | 样本数:{len(analysis_data)} "
-            f"0出现:{count_0}次 1出现:{count_1}次 "
-            f"高频结果:{self.high_count}"
-        )
+        #hight_logger.info(
+            #f"高频统计 | 样本数:{len(analysis_data)} "
+            #f"0出现:{count_0}次 1出现:{count_1}次 "
+            #f"高频结果:{self.high_count}"
+        #)
 
         # 主级模式
         if self.fail_count == 5:
@@ -228,6 +228,14 @@ class E(BetModel):
             f"高频结果:{self.high_count}"
         )
 
+        # 长度检查
+        if len(data) < 40:
+            # 数据不足时使用默认正投策略
+            self.guess_dx = data[-1] if data else 0
+            # 记录日志（数据不足）
+            self.log_prediction("N/A", data[-1] if data else "N/A", "N/A", self.guess_dx)
+            return self.guess_dx
+        
         # 获取位置值
         last_1 = data[-1]
         last_40 = data[-40]
@@ -235,27 +243,22 @@ class E(BetModel):
         # 高频 与 高频=最新值=参考点
         if self.high_count is not None and self.high_count == last_1 and self.high_count == last_40:
             self.guess_dx = last_1
-            decision_reason = "高频：相等"
         
         # 高频 & 最新值≠参考点
         elif self.high_count is not None and last_1 != last_40:
             self.guess_dx = self.high_count
-            decision_reason = "高频：不相等"
         
         # 无高频 & 最新值=参考点
         elif self.high_count is None and last_1 == last_40:
             self.guess_dx = last_1
-            decision_reason = "无高频：相等"
         
         # 无高频 & 最新值≠参考点
         elif self.high_count is None and last_1 != last_40:
             self.guess_dx = last_40
-            decision_reason = "无高频：不相等"
         
         # 默认模式：正投
         else:
             self.guess_dx = last_1
-            decision_reason = "正投"
         
         self.log_prediction(self.high_count, last_1, last_40, self.guess_dx)
         
