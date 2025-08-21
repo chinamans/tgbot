@@ -195,10 +195,6 @@ class E(BetModel):
         if self.high_count is not None and self.high_count == last_1 and self.high_count == last_40:
             self.guess_dx = last_1
         
-        # 高频 & 最新值≠参考点
-        elif self.high_count is not None and last_1 != last_40:
-            self.guess_dx = last_1
-        
         # 无高频 & 最新值=参考点
         elif self.high_count is None and last_1 == last_40:
             self.guess_dx = last_1
@@ -207,9 +203,9 @@ class E(BetModel):
         elif self.high_count is None and last_1 != last_40:
             self.guess_dx = last_40
         
-        # 默认模式：正投
+        # 默认模式：反投
         else:
-            self.guess_dx = last_1
+            self.guess_dx = 1 - last_1
 
         # 预测日志记录
         hight_logger.info(
