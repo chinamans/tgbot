@@ -9,7 +9,7 @@ hight_logger = logging.getLogger("hight")
 hight_logger.setLevel(logging.INFO)
 hight_logger.propagate = False
 
-# 策略A日志记录器
+# 策略E日志记录器
 hight_class_logger = logging.getLogger("hight_class")
 hight_class_logger.setLevel(logging.INFO)
 hight_class_logger.propagate = False
@@ -17,15 +17,16 @@ hight_class_logger.propagate = False
 log_dir = Path("logs")
 log_dir.mkdir(exist_ok=True, parents=True)
 
-# 配置日志处理器
+# 高频日志处理器
 if not hight_logger.handlers:
-    # 高频日志
     hight_handler = logging.FileHandler(log_dir / "hight.log", encoding="utf-8")
     hight_handler.setFormatter(logging.Formatter("[%(asctime)s] %(message)s"))
     hight_logger.addHandler(hight_handler)
-    
-    # 策略A日志
+
+# 策略E日志处理器
+if not hight_class_logger.handlers:
     class_hight_handler = logging.FileHandler(log_dir / "hight_class.log", encoding="utf-8")
+    
     class CustomFormatter(logging.Formatter):
         def format(self, record):
             parts = record.msg.split("|")
@@ -35,7 +36,7 @@ if not hight_logger.handlers:
                 high_value = last_1 = last_40 = prediction = "N/A"
                 
             now = datetime.now()
-            date_str = now.strftime("%Y年%m月%d日").replace("年0", "年").replace("月0", "月")  # 移除补零
+            date_str = now.strftime("%Y年%m月%d日").replace("年0", "年").replace("月0", "月")
             time_str = now.strftime("%H:%M:%S")
             
             return (
