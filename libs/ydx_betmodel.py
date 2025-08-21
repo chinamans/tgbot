@@ -218,9 +218,6 @@ class E(BetModel):
             f"高频统计 | 样本数:{len(analysis_data)} "
             f"0出现:{count_0}次 1出现:{count_1}次 "
             f"高频结果:{self.high_count}"
-            f"最新值:{last_1}"
-            f"参考值:{last_40}"
-            f"预测结果:{self.guess_dx}"
         )
 
     def get_bet_count(self, data: list[int], start_count=0, stop_count=0):
