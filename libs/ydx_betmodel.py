@@ -9,47 +9,24 @@ hight_logger = logging.getLogger("hight")
 hight_logger.setLevel(logging.INFO)
 hight_logger.propagate = False
 
+if not hight_logger.handlers:
+    log_dir = Path("logs")
+    log_dir.mkdir(exist_ok=True, parents=True)
+    handler = logging.FileHandler(log_dir / "hight.log", encoding="utf-8")
+    handler.setFormatter(logging.Formatter("[%(asctime)s] %(message)s"))
+    hight_logger.addHandler(handler)
+
 # 策略E日志记录器
 hight_class_logger = logging.getLogger("hight_class")
 hight_class_logger.setLevel(logging.INFO)
 hight_class_logger.propagate = False
 
-log_dir = Path("logs")
-log_dir.mkdir(exist_ok=True, parents=True)
-
-# 高频日志处理器
-if not hight_logger.handlers:
-    hight_handler = logging.FileHandler(log_dir / "hight.log", encoding="utf-8")
-    hight_handler.setFormatter(logging.Formatter("[%(asctime)s] %(message)s"))
-    hight_logger.addHandler(hight_handler)
-
-# 策略E日志处理器
 if not hight_class_logger.handlers:
-    class_hight_handler = logging.FileHandler(log_dir / "hight_class.log", encoding="utf-8")
-    
-    class CustomFormatter(logging.Formatter):
-        def format(self, record):
-            parts = record.msg.split("|")
-            if len(parts) == 4:
-                high_value, last_1, last_40, prediction = parts
-            else:
-                high_value = last_1 = last_40 = prediction = "N/A"
-                
-            now = datetime.now()
-            date_str = now.strftime("%Y年%m月%d日").replace("年0", "年").replace("月0", "月")
-            time_str = now.strftime("%H:%M:%S")
-            
-            return (
-                f"日期：{date_str}，"
-                f"时间：{time_str}，"
-                f"高频计算结果={high_value}，"
-                f"最新值={last_1}，"
-                f"参考值={last_40}，"
-                f"预测结果={prediction}"
-            )
-    
-    class_hight_handler.setFormatter(CustomFormatter())
-    hight_class_logger.addHandler(class_hight_handler)
+    log_dir = Path("logs")
+    log_dir.mkdir(exist_ok=True, parents=True)
+    handler = logging.FileHandler(log_dir / "hightClass.log", encoding="utf-8")
+    handler.setFormatter(logging.Formatter("[%(asctime)s] %(message)s"))
+    hight_class_logger.addHandler(handler)
 
 class BetModel(ABC):
     fail_count: int = 0
@@ -265,14 +242,15 @@ class E(BetModel):
         
         return self.guess_dx
 
-    def log_prediction(self, high_value, last_1, last_40, prediction):
-        """记录策略A专用日志"""
-        high_str = str(high_value) if high_value is not None else "None"
-        last_1_str = str(last_1)
-        last_40_str = str(last_40)
-        prediction_str = str(prediction)
-        log_message = f"{high_str}|{last_1_str}|{last_40_str}|{prediction_str}"
-        hight_class_logger.info(log_message)
+        # 高频日志记录
+        hight_class_logger.info(
+            f"高频统计 | 样本数:{len(analysis_data)} "
+            f"0出现:{count_0}次 1出现:{count_1}次 "
+            f"高频结果:{self.high_count}"
+            f"最新值:{last_1}"
+            f"参考值:{last_40}"
+            f"预测结果:{self.guess_dx}"
+        )
 
     def get_bet_count(self, data: list[int], start_count=0, stop_count=0):
         bet_count = self.fail_count - start_count
