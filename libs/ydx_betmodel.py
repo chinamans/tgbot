@@ -186,13 +186,6 @@ class E(BetModel):
             self.high_count = 1
         else:
             self.high_count = None
-
-        # 高频日志记录
-        hight_logger.info(
-            f"高频统计 | 样本数:{len(analysis_data)} "
-            f"0出现:{count_0}次 1出现:{count_1}次 "
-            f"高频结果:{self.high_count}"
-        )
         
         # 获取位置值
         last_1 = data[-1]
