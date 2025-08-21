@@ -9,12 +9,46 @@ hight_logger = logging.getLogger("hight")
 hight_logger.setLevel(logging.INFO)
 hight_logger.propagate = False
 
+# 策略A日志记录器
+hight_class_logger = logging.getLogger("hight_class")
+hight_class_logger.setLevel(logging.INFO)
+hight_class_logger.propagate = False
+
+log_dir = Path("logs")
+log_dir.mkdir(exist_ok=True, parents=True)
+
+# 配置日志处理器
 if not hight_logger.handlers:
-    log_dir = Path("logs")
-    log_dir.mkdir(exist_ok=True, parents=True)
-    handler = logging.FileHandler(log_dir / "hight.log", encoding="utf-8")
-    handler.setFormatter(logging.Formatter("[%(asctime)s] %(message)s"))
-    hight_logger.addHandler(handler)
+    # 高频日志
+    hight_handler = logging.FileHandler(log_dir / "hight.log", encoding="utf-8")
+    hight_handler.setFormatter(logging.Formatter("[%(asctime)s] %(message)s"))
+    hight_logger.addHandler(hight_handler)
+    
+    # 策略A日志
+    class_hight_handler = logging.FileHandler(log_dir / "hight_class.log", encoding="utf-8")
+    class CustomFormatter(logging.Formatter):
+        def format(self, record):
+            parts = record.msg.split("|")
+            if len(parts) == 4:
+                high_value, last_1, last_40, prediction = parts
+            else:
+                high_value = last_1 = last_40 = prediction = "N/A"
+                
+            now = datetime.now()
+            date_str = now.strftime("%Y年%m月%d日").replace("年0", "年").replace("月0", "月")  # 移除补零
+            time_str = now.strftime("%H:%M:%S")
+            
+            return (
+                f"日期：{date_str}，"
+                f"时间：{time_str}，"
+                f"高频计算结果={high_value}，"
+                f"最新值={last_1}，"
+                f"参考值={last_40}，"
+                f"预测结果={prediction}"
+            )
+    
+    class_hight_handler.setFormatter(CustomFormatter())
+    hight_class_logger.addHandler(class_hight_handler)
 
 class BetModel(ABC):
     fail_count: int = 0
@@ -174,17 +208,70 @@ class B(BetModel):
         return -1
         
 class E(BetModel):
-    """固定预测1，下注周期内满足条件时重置状态"""
+    """智能预测策略"""
     def guess(self, data):
-        # 固定预测1
-        self.guess_dx = 1
+        # 高频统计
+        analysis_data = data[-41:] if len(data) >= 41 else data
+        count_0 = analysis_data.count(0)
+        count_1 = analysis_data.count(1)
+        if count_0 > count_1:
+            self.high_count = 0
+        elif count_1 > count_0:
+            self.high_count = 1
+        else:
+            self.high_count = None
+
+        # 高频日志记录
+        hight_logger.info(
+            f"高频统计 | 样本数:{len(analysis_data)} "
+            f"0出现:{count_0}次 1出现:{count_1}次 "
+            f"高频结果:{self.high_count}"
+        )
+
+        # 获取位置值
+        last_1 = data[-1]
+        last_40 = data[-40]
+        
+        # 高频 与 高频=最新值=参考点
+        if self.high_count is not None and self.high_count == last_1 and self.high_count == last_40:
+            self.guess_dx = last_1
+            decision_reason = "高频：相等"
+        
+        # 高频 & 最新值≠参考点
+        elif self.high_count is not None and last_1 != last_40:
+            self.guess_dx = self.high_count
+            decision_reason = "高频：不相等"
+        
+        # 无高频 & 最新值=参考点
+        elif self.high_count is None and last_1 == last_40:
+            self.guess_dx = last_1
+            decision_reason = "无高频：相等"
+        
+        # 无高频 & 最新值≠参考点
+        elif self.high_count is None and last_1 != last_40:
+            self.guess_dx = last_40
+            decision_reason = "无高频：不相等"
+        
+        # 默认模式：正投
+        else:
+            self.guess_dx = last_1
+            decision_reason = "正投"
+        
+        self.log_prediction(self.high_count, last_1, last_40, self.guess_dx)
+        
         return self.guess_dx
+
+    def log_prediction(self, high_value, last_1, last_40, prediction):
+        """记录策略A专用日志"""
+        high_str = str(high_value) if high_value is not None else "None"
+        last_1_str = str(last_1)
+        last_40_str = str(last_40)
+        prediction_str = str(prediction)
+        log_message = f"{high_str}|{last_1_str}|{last_40_str}|{prediction_str}"
+        hight_class_logger.info(log_message)
 
     def get_bet_count(self, data: list[int], start_count=0, stop_count=0):
         bet_count = self.fail_count - start_count
-        if not (0 <= bet_count < stop_count):
-            self.fail_count = 0
-            bet_count = 0 - start_count
         if 0 <= bet_count < stop_count:
             return bet_count
         return -1
