@@ -4,18 +4,6 @@ import random
 import logging
 from pathlib import Path
 
-# 策略E日志记录器
-hightclass_logger = logging.getLogger("hight_class")
-hightclass_logger.setLevel(logging.INFO)
-hightclass_logger.propagate = False
-
-if not hightclass_logger.handlers:
-    log_dir = Path("logs")
-    log_dir.mkdir(exist_ok=True, parents=True)
-    handler = logging.FileHandler(log_dir / "hightClass.log", encoding="utf-8")
-    handler.setFormatter(logging.Formatter("[%(asctime)s] %(message)s"))
-    hightclass_logger.addHandler(handler)
-
 # 高频日志记录器
 hight_logger = logging.getLogger("hight")
 hight_logger.setLevel(logging.INFO)
@@ -205,14 +193,6 @@ class E(BetModel):
             f"0出现:{count_0}次 1出现:{count_1}次 "
             f"高频结果:{self.high_count}"
         )
-
-        # 长度检查
-        if len(data) < 40:
-            # 数据不足时使用默认正投策略
-            self.guess_dx = data[-1] if data else 0
-            # 记录日志（数据不足）
-            self.log_prediction("N/A", data[-1] if data else "N/A", "N/A", self.guess_dx)
-            return self.guess_dx
         
         # 获取位置值
         last_1 = data[-1]
@@ -237,17 +217,8 @@ class E(BetModel):
         # 默认模式：正投
         else:
             self.guess_dx = last_1
-        
-        self.log_prediction(self.high_count, last_1, last_40, self.guess_dx)
-        
+            
         return self.guess_dx
-
-        # 高频日志记录
-        hightclass_logger.info(
-            f"高频统计 | 样本数:{len(analysis_data)} "
-            f"0出现:{count_0}次 1出现:{count_1}次 "
-            f"高频结果:{self.high_count}"
-        )
 
     def get_bet_count(self, data: list[int], start_count=0, stop_count=0):
         bet_count = self.fail_count - start_count
