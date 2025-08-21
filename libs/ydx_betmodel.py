@@ -4,6 +4,18 @@ import random
 import logging
 from pathlib import Path
 
+# 策略E日志记录器
+hightclass_logger = logging.getLogger("hight_class")
+hightclass_logger.setLevel(logging.INFO)
+hightclass_logger.propagate = False
+
+if not hightclass_logger.handlers:
+    log_dir = Path("logs")
+    log_dir.mkdir(exist_ok=True, parents=True)
+    handler = logging.FileHandler(log_dir / "hightClass.log", encoding="utf-8")
+    handler.setFormatter(logging.Formatter("[%(asctime)s] %(message)s"))
+    hightclass_logger.addHandler(handler)
+
 # 高频日志记录器
 hight_logger = logging.getLogger("hight")
 hight_logger.setLevel(logging.INFO)
@@ -15,18 +27,6 @@ if not hight_logger.handlers:
     handler = logging.FileHandler(log_dir / "hight.log", encoding="utf-8")
     handler.setFormatter(logging.Formatter("[%(asctime)s] %(message)s"))
     hight_logger.addHandler(handler)
-
-# 策略E日志记录器
-hight_class_logger = logging.getLogger("hight_class")
-hight_class_logger.setLevel(logging.INFO)
-hight_class_logger.propagate = False
-
-if not hight_class_logger.handlers:
-    log_dir = Path("logs")
-    log_dir.mkdir(exist_ok=True, parents=True)
-    handler = logging.FileHandler(log_dir / "hightClass.log", encoding="utf-8")
-    handler.setFormatter(logging.Formatter("[%(asctime)s] %(message)s"))
-    hight_class_logger.addHandler(handler)
 
 class BetModel(ABC):
     fail_count: int = 0
@@ -243,13 +243,10 @@ class E(BetModel):
         return self.guess_dx
 
         # 高频日志记录
-        hight_class_logger.info(
+        hightclass_logger.info(
             f"高频统计 | 样本数:{len(analysis_data)} "
             f"0出现:{count_0}次 1出现:{count_1}次 "
             f"高频结果:{self.high_count}"
-            f"最新值:{last_1}"
-            f"参考值:{last_40}"
-            f"预测结果:{self.guess_dx}"
         )
 
     def get_bet_count(self, data: list[int], start_count=0, stop_count=0):
