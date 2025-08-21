@@ -217,6 +217,16 @@ class E(BetModel):
         # 默认模式：正投
         else:
             self.guess_dx = last_1
+
+        # 预测日志记录
+        hight_logger.info(
+            f"高频统计 | 样本数:{len(analysis_data)} "
+            f"0出现:{count_0}次 1出现:{count_1}次 "
+            f"高频结果:{self.high_count} "
+            f"最新值:{last_1} "
+            f"参考值:{last_40 if last_40 is not None else 'N/A'} "
+            f"预测结果:{self.guess_dx}"
+        )
             
         return self.guess_dx
 
