@@ -12,7 +12,7 @@ hight_logger.propagate = False
 if not hight_logger.handlers:
     log_dir = Path("logs")
     log_dir.mkdir(exist_ok=True, parents=True)
-    handler = logging.FileHandler(log_dir / "hight.log", encoding="utf-8")
+    handler = logging.FileHandler(log_dir / "hightclassE.log", encoding="utf-8")
     handler.setFormatter(logging.Formatter("[%(asctime)s] %(message)s"))
     hight_logger.addHandler(handler)
 
@@ -186,13 +186,6 @@ class E(BetModel):
             self.high_count = 1
         else:
             self.high_count = None
-
-        # 高频日志记录
-        hight_logger.info(
-            f"高频统计 | 样本数:{len(analysis_data)} "
-            f"0出现:{count_0}次 1出现:{count_1}次 "
-            f"高频结果:{self.high_count}"
-        )
         
         # 获取位置值
         last_1 = data[-1]
@@ -219,6 +212,16 @@ class E(BetModel):
             self.guess_dx = last_1
             
         return self.guess_dx
+
+        # 预测日志记录
+        hight_logger.info(
+            f"高频统计 | 样本数:{len(analysis_data)} "
+            f"0出现:{count_0}次 1出现:{count_1}次 "
+            f"高频结果:{self.high_count}"
+            f"最新值:{last_1}"
+            f"参考值:{last_40}"
+            f"预测结果:{self.guess_dx}"
+        )
 
     def get_bet_count(self, data: list[int], start_count=0, stop_count=0):
         bet_count = self.fail_count - start_count
