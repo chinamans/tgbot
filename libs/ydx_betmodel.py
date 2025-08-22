@@ -191,9 +191,13 @@ class E(BetModel):
         last_1 = data[-1]
         last_40 = data[-40]
         
-        # 高频 与 高频=最新值=参考点
+        # 高频 & 高频=最新值=参考点
         if self.high_count is not None and self.high_count == last_1 and self.high_count == last_40:
             self.guess_dx = 1 - self.high_count
+
+        # 高频 & 最新值=参考点
+        elif self.high_count is not None and last_1 == last_40:
+            self.guess_dx = last_1
         
         # 无高频 & 最新值=参考点
         elif self.high_count is None and last_1 == last_40:
