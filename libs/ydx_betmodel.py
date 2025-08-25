@@ -201,11 +201,11 @@ class E(BetModel):
         
         # 无高频 & 最新值=参考点
         elif self.high_count is None and last_1 == last_40:
-            self.guess_dx = last_1
+            self.guess_dx = 1 - last_1
         
         # 无高频 & 最新值≠参考点
         elif self.high_count is None and last_1 != last_40:
-            self.guess_dx = last_40
+            self.guess_dx = last_1
         
         # 默认模式：反投
         else:
