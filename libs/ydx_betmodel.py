@@ -3,11 +3,6 @@ from app import logger
 import random
 import logging
 from pathlib import Path
-import asyncio
-from datetime import datetime, timedelta
-import telegram
-from telegram import Update
-from telegram.ext import CallbackContext
 
 # 高频日志记录器
 hight_logger = logging.getLogger("hight")
@@ -20,117 +15,6 @@ if not hight_logger.handlers:
     handler = logging.FileHandler(log_dir / "hight.log", encoding="utf-8")
     handler.setFormatter(logging.Formatter("[%(asctime)s] %(message)s"))
     hight_logger.addHandler(handler)
-    
-# ================= Telegram 回调优化函数 =================
-def is_query_valid(query) -> bool:
-    """检查查询是否过期（超过2分钟）"""
-    if not query.message:
-        return False
-    
-    query_time = query.message.date
-    current_time = datetime.utcnow()
-    return (current_time - query_time) < timedelta(minutes=2)
-
-async def safe_edit_message(context: CallbackContext, chat_id: int, message_id: int, text: str, retry=0):
-    """带重试机制的安全消息编辑函数"""
-    try:
-        await context.bot.edit_message_text(
-            text=text,
-            chat_id=chat_id,
-            message_id=message_id
-        )
-    except telegram.error.RetryAfter as e:
-        # 处理速率限制
-        wait_time = e.retry_after + random.uniform(0.5, 2.0)
-        logger.warning(f"速率限制，等待 {wait_time:.1f}秒")
-        await asyncio.sleep(wait_time)
-        return await safe_edit_message(context, chat_id, message_id, text, retry+1)
-    except telegram.error.BadRequest as e:
-        if "Message is not modified" in str(e):
-            # 忽略无害的"消息未修改"错误
-            pass
-        elif "Query is too old" in str(e):
-            logger.warning(f"过期查询: {message_id}")
-            raise  # 直接抛出不再重试
-        elif retry < 3:
-            wait_time = 2 ** retry + random.uniform(0.5, 2.0)
-            logger.warning(f"Telegram API 错误，重试#{retry+1}: {e}")
-            await asyncio.sleep(wait_time)
-            return await safe_edit_message(context, chat_id, message_id, text, retry+1)
-        else:
-            logger.error(f"消息编辑失败: {e}")
-            raise
-    except Exception as e:
-        if retry < 3:
-            wait_time = 2 ** retry + random.uniform(0.5, 2.0)
-            logger.warning(f"编辑消息错误，重试#{retry+1}: {e}")
-            await asyncio.sleep(wait_time)
-            return await safe_edit_message(context, chat_id, message_id, text, retry+1)
-        else:
-            logger.error(f"消息编辑失败: {e}")
-            raise
-
-async def process_callback(query, context: CallbackContext):
-    """后台处理回调的耗时操作"""
-    try:
-        # ========================
-        # 这里放置您原有的回调处理逻辑
-        # 例如：
-        # data = query.data
-        # result = await your_main_processing_function(data)
-        # result_text = format_result(result)
-        # ========================
-        
-        # 示例：模拟耗时操作
-        await asyncio.sleep(5)
-        result_text = "✅ 处理完成！"
-        
-        # 使用安全的消息编辑方法
-        await safe_edit_message(
-            context=context,
-            chat_id=query.message.chat_id,
-            message_id=query.message.message_id,
-            text=result_text
-        )
-    except telegram.error.BadRequest as e:
-        if "Query is too old" in str(e):
-            logger.warning(f"过期查询: {query.data}")
-        else:
-            logger.error(f"Telegram API 错误: {e}")
-    except Exception as e:
-        logger.exception(f"后台处理错误: {e}")
-        # 尝试向用户发送错误通知
-        try:
-            await context.bot.answer_callback_query(
-                callback_query_id=query.id,
-                text="处理请求时出错，请重试",
-                show_alert=True
-            )
-        except Exception:
-            pass
-
-async def callback_handler(update: Update, context: CallbackContext):
-    query = update.callback_query
-    
-    try:
-        # 1. 检查查询有效性
-        if not is_query_valid(query):
-            await query.answer(text="❌ 操作已过期，请重新开始", show_alert=True)
-            return
-        
-        # 2. 立即响应 Telegram（关键步骤！）
-        await query.answer()
-        
-        # 3. 启动后台处理
-        asyncio.create_task(process_callback(query, context))
-        
-    except Exception as e:
-        logger.exception("回调处理异常")
-        try:
-            await query.answer(text="⚠️ 系统错误，请稍后再试", show_alert=True)
-        except Exception:
-            pass
-# ================= Telegram 回调优化函数结束 =================
 
 class BetModel(ABC):
     fail_count: int = 0
