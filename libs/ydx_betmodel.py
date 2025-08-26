@@ -209,7 +209,7 @@ class E(BetModel):
         
         # 默认模式：反投
         else:
-            self.guess_dx = 1 - last_1
+            self.guess_dx = last_1
 
         # 预测日志记录
         hight_logger.info(
